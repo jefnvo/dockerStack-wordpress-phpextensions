@@ -1,7 +1,6 @@
-# wordpress-with-sql-mysql
-Dokcerfile:
+Dockerfile:
 
-    - This Dockerfile contains php extensions for mysql and sqlserver
+    - This Dockerfile builds a imagem that contains php extensions for mysql and sqlserver databases
 
 docker-compose
 
