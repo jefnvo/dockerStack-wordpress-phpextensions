@@ -1,6 +1,6 @@
 Dockerfile:
 
-    - This Dockerfile builds a image that contains php extensions for mysql and sqlserver databases
+    - This Dockerfile builds a wordpress image that contains php extensions for mysql and sqlserver databases
 
 docker-compose
 
