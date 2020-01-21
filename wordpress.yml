@@ -1,0 +1,94 @@
+version: '3.7'
+
+x-logging:
+  &default-logging
+  options:
+    max-size: '100m'
+    max-file: '10'
+  driver: json-file
+
+services:
+  wordpress-api:
+    image: wordpress:v1
+    user: root
+    volumes:
+      - wp_data_custom:/var/www/html
+    environment:
+      WORDPRESS_DB_HOST: 'wordpress-db-custom'
+      WORDPRESS_DB_USER: 'wpuser'
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_DB_NAME: 'wp-database'
+    networks:
+      - net_internal
+    logging: *default-logging
+    ports:
+      80:80
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 30s
+      resources:
+        limits:
+          memory: 1.5G
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    depends_on:
+      - wordpress-db
+    environment:
+      PMA_HOST: wordpress-db-custom
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 30s
+      resources:
+        limits:
+          memory: 200M
+    networks:
+      - net_internal
+    ports:
+      - 8080:80
+
+  wordpress-db-custom:
+    image: mariadb:10.1
+    environment:
+      MYSQL_DATABASE: 'wp-database'
+      MYSQL_USER: 'wpuser'
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: 'root'
+    networks:
+      - net_internal
+    volumes:
+      - db_data_custom:/var/lib/mysql
+    logging: *default-logging
+    ports:
+      - 3306:3306
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 30s
+networks:
+  net_internal:
+    name: net_internal
+    driver: default
+
+
+volumes:
+  db_data_custom:
+    name: dev-mysql-custom-data
+  wp_data_custom:
+    name: dev-wordpress-custom-data
